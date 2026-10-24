@@ -2,6 +2,7 @@ import {
   Catch,
   HttpException,
   HttpStatus,
+  Logger,
   type ArgumentsHost,
   type ExceptionFilter,
 } from '@nestjs/common';
@@ -9,6 +10,12 @@ import type { Response } from 'express';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger: Logger;
+
+  constructor() {
+    this.logger = new Logger(AllExceptionsFilter.name);
+  }
+
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
 
@@ -42,6 +49,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
           errorName = error;
         }
       }
+    }
+
+    if (!isHttpException) {
+      const stack = exception instanceof Error ? exception.stack : undefined;
+      this.logger.error('Erro inesperado', stack ?? String(exception));
+    } else {
+      this.logger.warn(`${status} - ${errorName} - ${messages.join(' | ')}`);
     }
 
     return response.status(status).json({

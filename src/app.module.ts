@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { PostModule } from './post/post.module';
 
 import { APP_FILTER } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AllExceptionsFilter } from './common/filters/all-exception-filter';
 import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
@@ -12,6 +13,15 @@ import { UserModule } from './user/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 10000,
+          limit: 1,
+          blockDuration: 5000,
+        },
+      ],
+    }),
 
     TypeOrmModule.forRootAsync({
       useFactory: () => {
